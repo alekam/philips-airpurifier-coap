@@ -6,6 +6,7 @@ from functools import partial
 from ipaddress import ip_address
 import json
 import logging
+import socket
 from os import path, walk
 
 from aioairctrl import CoAPClient
@@ -93,7 +94,10 @@ async def async_setup(hass: HomeAssistant, config) -> bool:
 
 async def async_get_mac_address_from_host(hass: HomeAssistant, host: str) -> str | None:
     """Get mac address from host."""
-    ip_addr = ip_address(host)
+    try:
+        ip_addr = ip_address(host)
+    except ValueError:
+        ip_addr = ip_address(socket.gethostbyname(host))
     if ip_addr.version == 4:
         mac_address = await hass.async_add_executor_job(
             partial(get_mac_address, ip=host)
